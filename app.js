@@ -40,14 +40,14 @@ function fetchData() {
         var postsResponse, postsData, usersResponse, usersData;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, fetch("posts.json")];
+                case 0: return [4 /*yield*/, fetch("https://jmrfrosa.github.io/edit-jsts-dec2023.github.io/data/posts.json")];
                 case 1:
                     postsResponse = _a.sent();
                     return [4 /*yield*/, postsResponse.json()];
                 case 2:
                     postsData = _a.sent();
                     posts = postsData;
-                    return [4 /*yield*/, fetch("users.json")];
+                    return [4 /*yield*/, fetch("https://jmrfrosa.github.io/edit-jsts-dec2023.github.io/data/users.json")];
                 case 3:
                     usersResponse = _a.sent();
                     return [4 /*yield*/, usersResponse.json()];
@@ -60,6 +60,7 @@ function fetchData() {
     });
 }
 function getPostDetails(postsData, usersData) {
+    console.log(posts);
     var postsContainer = document.getElementById("container");
     if (!postsContainer) {
         console.error("Posts container not found");

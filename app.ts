@@ -1,10 +1,14 @@
 let posts;
 
 async function fetchData() {
-  const postsResponse = await fetch("posts.json");
+  const postsResponse = await fetch(
+    "https://jmrfrosa.github.io/edit-jsts-dec2023.github.io/data/posts.json"
+  );
   const postsData = await postsResponse.json();
   posts = postsData;
-  const usersResponse = await fetch("users.json");
+  const usersResponse = await fetch(
+    "https://jmrfrosa.github.io/edit-jsts-dec2023.github.io/data/users.json"
+  );
   const usersData = await usersResponse.json();
 
   getPostDetails(postsData, usersData);
@@ -15,7 +19,7 @@ interface Post {
   id: number;
   title: string;
   body: string;
-  likes: string;
+  likes: number[];
   createdAt: string;
 }
 
@@ -25,6 +29,8 @@ interface User {
 }
 
 function getPostDetails(postsData: Post[], usersData: User[]) {
+  console.log(posts);
+
   const postsContainer = document.getElementById("container");
 
   if (!postsContainer) {
