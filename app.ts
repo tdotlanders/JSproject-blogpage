@@ -21,14 +21,23 @@ interface Post {
   body: string;
   likes: number[];
   createdAt: string;
+  comments: Comment[];
 }
 
 interface User {
   id: number;
   name: string;
 }
-
-function getPostDetails(postsData: Post[], usersData: User[]) {
+interface Comment {
+  userId: number;
+  body: string;
+  createdAt: string;
+}
+function getPostDetails(
+  postsData: Post[],
+  usersData: User[],
+  commentsData: Comment[]
+) {
   console.log(posts);
 
   const postsContainer = document.getElementById("container");
@@ -62,15 +71,42 @@ function createPostListItem(post: Post): HTMLElement {
   bodyElement.textContent = post.body;
 
   const likesElement = document.createElement("span");
-  likesElement.textContent = post.likes.length;
+  likesElement.textContent = post.likes.length.toString(); // Convert number to string
 
   const dateElement = document.createElement("span");
   dateElement.textContent = new Date(post.createdAt).toLocaleString("pt");
+
+  const commentsContainer = document.createElement("div");
+  commentsContainer.classList.add("comments-container");
+
+  post.comments.forEach((comment: Comment) => {
+    const commentElement = document.createElement("div");
+    commentElement.classList.add("comment");
+
+    /*  const commentUser = userIdData.find((user) => user.id === comment.userId); */
+    console.log(comment);
+    const commentUserElement = document.createElement("span");
+    commentUserElement.textContent = comment.userId + ": ";
+    commentElement.appendChild(commentUserElement);
+
+    const commentBodyElement = document.createElement("span");
+    commentBodyElement.textContent = comment.body;
+    commentElement.appendChild(commentBodyElement);
+
+    const commentDateElement = document.createElement("span");
+    commentDateElement.textContent = new Date(comment.createdAt).toLocaleString(
+      "pt"
+    );
+    commentElement.appendChild(commentDateElement);
+
+    commentsContainer.appendChild(commentElement);
+  });
 
   postItem.appendChild(titleElement);
   postItem.appendChild(bodyElement);
   postItem.appendChild(likesElement);
   postItem.appendChild(dateElement);
+  postItem.appendChild(commentsContainer);
 
   return postItem;
 }
