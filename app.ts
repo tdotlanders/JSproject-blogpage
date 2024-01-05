@@ -1,4 +1,24 @@
-let posts;
+interface Post {
+  title: string;
+  body: string;
+  likes: number[];
+  createdAt: string;
+  comments: Comment[];
+}
+
+interface User {
+  id: number;
+  name: string;
+  picture: string;
+}
+interface Comment {
+  userId: number;
+  body: string;
+  createdAt: string;
+}
+
+let posts: Post[] = [];
+let users: User[] = [];
 
 async function fetchData() {
   const postsResponse = await fetch(
@@ -10,35 +30,17 @@ async function fetchData() {
     "https://jmrfrosa.github.io/edit-jsts-dec2023.github.io/data/users.json"
   );
   const usersData = await usersResponse.json();
-
-  getPostDetails(postsData, usersData);
+  users = usersData;
+  getPostDetails(postsData);
 }
 
-interface Post {
-  userId: number;
-  id: number;
-  title: string;
-  body: string;
-  likes: number[];
-  createdAt: string;
-  comments: Comment[];
-}
-
-interface User {
-  id: number;
-  name: string;
-}
-interface Comment {
-  userId: number;
-  body: string;
-  createdAt: string;
-}
-function getPostDetails(
-  postsData: Post[],
-  usersData: User[],
-  commentsData: Comment[]
-) {
+function getPostDetails(postsData: Post[]) {
   console.log(posts);
+  const sortedPosts = postsData.sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return dateB - dateA;
+  });
 
   const postsContainer = document.getElementById("container");
 
@@ -50,17 +52,17 @@ function getPostDetails(
   const postsList = document.createElement("ul");
   postsList.classList.add("posts-list");
 
-  postsData.forEach((post) => {
+  sortedPosts.forEach((post) => {
     /*  const user = usersData.find((user) => user.id === post.userId); */
     console.log(post);
-    const postItem = createPostListItem(post);
+    const postItem = createPostListItem(post, users);
     postsList.appendChild(postItem);
   });
   console.log(postsList);
   postsContainer.appendChild(postsList);
 }
 
-function createPostListItem(post: Post): HTMLElement {
+function createPostListItem(post: Post, usersData: User[]): HTMLElement {
   const postItem = document.createElement("li");
   postItem.classList.add("post-item");
 
@@ -83,10 +85,15 @@ function createPostListItem(post: Post): HTMLElement {
     const commentElement = document.createElement("div");
     commentElement.classList.add("comment");
 
-    /*  const commentUser = userIdData.find((user) => user.id === comment.userId); */
+    const commentUser = usersData.find((user) => user.id === comment.userId);
     console.log(comment);
+
+    const commentpictureElement = document.createElement("img");
+    commentpictureElement.src = commentUser?.picture ?? "";
+    commentElement.appendChild(commentpictureElement);
+
     const commentUserElement = document.createElement("span");
-    commentUserElement.textContent = comment.userId + ": ";
+    commentUserElement.textContent = commentUser?.name + ": ";
     commentElement.appendChild(commentUserElement);
 
     const commentBodyElement = document.createElement("span");
@@ -111,8 +118,71 @@ function createPostListItem(post: Post): HTMLElement {
   return postItem;
 }
 
-// Example usage:
-// getPostDetails(postsData, usersData);
-
 fetchData();
 console.log("Running");
+
+function searchPost(): any {
+  const input = document.getElementById("searchBar") as HTMLInputElement;
+
+  const searchTerm = input.value.toLowerCase().trim();
+
+  console.log("posts depois search", posts);
+  const filterPost = posts.filter((post) => {
+    return post.title.toLowerCase().includes(searchTerm);
+  });
+
+  const postsContainer = document.getElementById("container");
+  if (postsContainer) {
+    postsContainer.innerHTML = "";
+  }
+  showPostsFound(filterPost.length);
+  getPostDetails(filterPost);
+}
+
+function submitPost(newPost: Post): void {
+  posts.unshift(newPost);
+
+  const postsContainer = document.getElementById("container");
+  if (postsContainer) {
+    postsContainer.innerHTML = "";
+  }
+
+  getPostDetails(posts);
+}
+
+function showPostsFound(count: number): void {
+  const countContainer = document.createElement("div");
+  countContainer.textContent = `Number of posts found: ${count}`;
+
+  const postsContainer = document.getElementById("container");
+  if (postsContainer) {
+    postsContainer.appendChild(countContainer);
+  }
+}
+
+const newPostNode = document.getElementById("postForm");
+
+newPostNode?.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const inputtextTitle = document.getElementById(
+    "postTitleName"
+  ) as HTMLInputElement;
+
+  const textTitle = inputtextTitle.value;
+
+  const imputTextBody = document.getElementById(
+    "postContent"
+  ) as HTMLInputElement;
+
+  const textBody = imputTextBody.value;
+
+  const newPost: Post = {
+    title: textTitle,
+    body: textBody,
+    createdAt: new Date().toISOString(),
+    comments: [],
+    likes: [],
+  };
+
+  submitPost(newPost);
+});

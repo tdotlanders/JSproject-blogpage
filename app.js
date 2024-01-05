@@ -34,7 +34,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var posts;
+var posts = [];
+var users = [];
 function fetchData() {
     return __awaiter(this, void 0, void 0, function () {
         var postsResponse, postsData, usersResponse, usersData;
@@ -53,14 +54,20 @@ function fetchData() {
                     return [4 /*yield*/, usersResponse.json()];
                 case 4:
                     usersData = _a.sent();
-                    getPostDetails(postsData, usersData);
+                    users = usersData;
+                    getPostDetails(postsData);
                     return [2 /*return*/];
             }
         });
     });
 }
-function getPostDetails(postsData, usersData) {
+function getPostDetails(postsData) {
     console.log(posts);
+    var sortedPosts = postsData.sort(function (a, b) {
+        var dateA = new Date(a.createdAt).getTime();
+        var dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA;
+    });
     var postsContainer = document.getElementById("container");
     if (!postsContainer) {
         console.error("Posts container not found");
@@ -68,16 +75,16 @@ function getPostDetails(postsData, usersData) {
     }
     var postsList = document.createElement("ul");
     postsList.classList.add("posts-list");
-    postsData.forEach(function (post) {
+    sortedPosts.forEach(function (post) {
         /*  const user = usersData.find((user) => user.id === post.userId); */
         console.log(post);
-        var postItem = createPostListItem(post);
+        var postItem = createPostListItem(post, users);
         postsList.appendChild(postItem);
     });
     console.log(postsList);
     postsContainer.appendChild(postsList);
 }
-function createPostListItem(post) {
+function createPostListItem(post, usersData) {
     var postItem = document.createElement("li");
     postItem.classList.add("post-item");
     var titleElement = document.createElement("h2");
@@ -85,16 +92,83 @@ function createPostListItem(post) {
     var bodyElement = document.createElement("p");
     bodyElement.textContent = post.body;
     var likesElement = document.createElement("span");
-    likesElement.textContent = post.likes.length;
+    likesElement.textContent = post.likes.length.toString(); // Convert number to string
     var dateElement = document.createElement("span");
     dateElement.textContent = new Date(post.createdAt).toLocaleString("pt");
+    var commentsContainer = document.createElement("div");
+    commentsContainer.classList.add("comments-container");
+    post.comments.forEach(function (comment) {
+        var _a;
+        var commentElement = document.createElement("div");
+        commentElement.classList.add("comment");
+        var commentUser = usersData.find(function (user) { return user.id === comment.userId; });
+        console.log(comment);
+        var commentpictureElement = document.createElement("img");
+        commentpictureElement.src = (_a = commentUser === null || commentUser === void 0 ? void 0 : commentUser.picture) !== null && _a !== void 0 ? _a : "";
+        commentElement.appendChild(commentpictureElement);
+        var commentUserElement = document.createElement("span");
+        commentUserElement.textContent = (commentUser === null || commentUser === void 0 ? void 0 : commentUser.name) + ": ";
+        commentElement.appendChild(commentUserElement);
+        var commentBodyElement = document.createElement("span");
+        commentBodyElement.textContent = comment.body;
+        commentElement.appendChild(commentBodyElement);
+        var commentDateElement = document.createElement("span");
+        commentDateElement.textContent = new Date(comment.createdAt).toLocaleString("pt");
+        commentElement.appendChild(commentDateElement);
+        commentsContainer.appendChild(commentElement);
+    });
     postItem.appendChild(titleElement);
     postItem.appendChild(bodyElement);
     postItem.appendChild(likesElement);
     postItem.appendChild(dateElement);
+    postItem.appendChild(commentsContainer);
     return postItem;
 }
-// Example usage:
-// getPostDetails(postsData, usersData);
 fetchData();
 console.log("Running");
+function searchPost() {
+    var input = document.getElementById("searchBar");
+    var searchTerm = input.value.toLowerCase().trim();
+    console.log("posts depois search", posts);
+    var filterPost = posts.filter(function (post) {
+        return post.title.toLowerCase().includes(searchTerm);
+    });
+    var postsContainer = document.getElementById("container");
+    if (postsContainer) {
+        postsContainer.innerHTML = "";
+    }
+    showPostsFound(filterPost.length);
+    getPostDetails(filterPost);
+}
+function submitPost(newPost) {
+    posts.unshift(newPost);
+    var postsContainer = document.getElementById("container");
+    if (postsContainer) {
+        postsContainer.innerHTML = "";
+    }
+    getPostDetails(posts);
+}
+function showPostsFound(count) {
+    var countContainer = document.createElement("div");
+    countContainer.textContent = "Number of posts found: ".concat(count);
+    var postsContainer = document.getElementById("container");
+    if (postsContainer) {
+        postsContainer.appendChild(countContainer);
+    }
+}
+var newPostNode = document.getElementById("postForm");
+newPostNode === null || newPostNode === void 0 ? void 0 : newPostNode.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var inputtextTitle = document.getElementById("postTitleName");
+    var textTitle = inputtextTitle.value;
+    var imputTextBody = document.getElementById("postContent");
+    var textBody = imputTextBody.value;
+    var newPost = {
+        title: textTitle,
+        body: textBody,
+        createdAt: new Date().toISOString(),
+        comments: [],
+        likes: [],
+    };
+    submitPost(newPost);
+});
